@@ -115,18 +115,18 @@ const showtimeController = {
         return res.status(404).json({ error: 'Movie not found' });
       }
 
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0); // Set time to midnight (00:00:00)
-      currentDate.setHours(currentDate.getHours() + 7); // Add GMT+7 offset
+      // const currentDate = new Date();
+      // currentDate.setHours(0, 0, 0, 0); // Set time to midnight (00:00:00)
+      // currentDate.setHours(currentDate.getHours() + 7); // Add GMT+7 offset
 
-      const schedules = await Schedule.find({ showtimeId: showtimeId, date: { $gte: currentDate } });
+      // const schedules = await Schedule.find({ showtimeId: showtimeId, date: { $gte: currentDate } });
 
       const showtimeDetails = {
         id: showtime._id,
         movie: movie,
         dateRange: showtime.dateRange,
         isActive: showtime.isActive,
-        schedules
+        // schedules
       };
 
       res.status(200).json(showtimeDetails);
@@ -151,18 +151,18 @@ const showtimeController = {
         return res.status(404).json({ error: 'Movie not found' });
       }
 
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0); // Set time to midnight (00:00:00)
-      currentDate.setHours(currentDate.getHours() + 7); // Add GMT+7 offset
+      // const currentDate = new Date();
+      // currentDate.setHours(0, 0, 0, 0); // Set time to midnight (00:00:00)
+      // currentDate.setHours(currentDate.getHours() + 7); // Add GMT+7 offset
 
-      const schedules = await Schedule.find({ showtimeId: showtime._id, date: { $gte: currentDate } });
+      // const schedules = await Schedule.find({ showtimeId: showtime._id, date: { $gte: currentDate } });
 
       const showtimeDetails = {
         id: showtime._id,
         movie: movie,
         dateRange: showtime.dateRange,
         isActive: showtime.isActive,
-        schedules
+        // schedules
       };
 
       res.status(200).json(showtimeDetails);

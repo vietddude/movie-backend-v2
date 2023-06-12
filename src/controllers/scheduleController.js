@@ -47,16 +47,16 @@ const scheduleController = {
     },
 
     // done and checked
-    getByscheduleIdAndDate: async (req, res) => {
+    getByShowtimeIdAndDate: async (req, res) => {
         try {
-            const { scheduleId, date } = req.query; // Retrieve from req.query instead of req.body
+            const { showtimeId, date } = req.query; // Retrieve from req.query instead of req.body
 
             const [year, month, day] = date.split('/').map(Number);
             const scheduleDate = new Date(year, month - 1, day);
             scheduleDate.setHours(scheduleDate.getHours() + 7); // Add GMT+7 offset
 
             const schedules = await Schedule.find({
-                scheduleId,
+                showtimeId,
                 date: { $eq: scheduleDate },
             });
 
@@ -78,7 +78,6 @@ const scheduleController = {
             res.status(500).json({ error: 'Error retrieving schedule' });
         }
     },
-
 
     updateById: async (req, res) => {
         const scheduleId = req.params.id;

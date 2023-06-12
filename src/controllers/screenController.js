@@ -102,6 +102,17 @@ const ScreenController = {
             res.status(500).json({ error: 'Error setting booked seats' });
         }
     },
+
+    deleteBookedSeat: async (req, res) => {
+        const bookedSeatId = req.params.bookedSeatId;
+        try {
+            await BookedSeat.findOneAndDelete(bookedSeatId);
+            res.status(200).json({ message: "Booked seat deleted successfully"})
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error when deleting booked seats' });
+        }
+    }
 }
 
 module.exports = ScreenController;
