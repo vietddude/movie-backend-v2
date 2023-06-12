@@ -6,8 +6,9 @@ const ScreenController = require('../controllers/screenController');
 const router = new express.Router();
 
 router.post('/', ScreenController.createScreen);
+router.post('/booked-seat/:id', ScreenController.setBookedSeat);
 router.get('/:id', ScreenController.getScreen);
 router.get('/', ScreenController.getScreenBy);
-router.patch('/:id', ScreenController.setBookedSeat);
+
 
 module.exports = router;
