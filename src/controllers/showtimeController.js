@@ -36,7 +36,7 @@ const showtimeController = {
           return res.status(404).json({ error: 'Movie not found' });
         }
 
-        const schedules = await Schedule.find({showtimeId: showtime._id});
+        const schedules = await Schedule.find({ showtimeId: showtime._id });
 
         const showtimeDetail = {
           id: showtime._id,
@@ -84,7 +84,6 @@ const showtimeController = {
     try {
       const now = new Date();
       const upcomingShowtimes = await Showtime.find({
-        'dateRange.start': { $lte: null },
         'dateRange.end': { $gte: now },
         isActive: true,
       }).populate('movieId');
@@ -104,24 +103,24 @@ const showtimeController = {
   // done and checked
   getShowtimeById: async (req, res) => {
     const showtimeId = req.params.id;
-  
+
     try {
       const showtime = await Showtime.findById(showtimeId).populate('movieId').exec();
       if (!showtime) {
         return res.status(404).json({ error: 'Showtime not found' });
       }
-  
+
       const movie = await Movie.findById(showtime.movieId);
       if (!movie) {
         return res.status(404).json({ error: 'Movie not found' });
       }
-  
+
       const currentDate = new Date();
       currentDate.setHours(0, 0, 0, 0); // Set time to midnight (00:00:00)
       currentDate.setHours(currentDate.getHours() + 7); // Add GMT+7 offset
-  
+
       const schedules = await Schedule.find({ showtimeId: showtimeId, date: { $gte: currentDate } });
-  
+
       const showtimeDetails = {
         id: showtime._id,
         movie: movie,
@@ -129,14 +128,14 @@ const showtimeController = {
         isActive: showtime.isActive,
         schedules
       };
-  
+
       res.status(200).json(showtimeDetails);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
-  
+
   // done and checked
   getShowtimeByUrl: async (req, res) => {
     const showtimeUrl = req.params.url;
@@ -155,7 +154,7 @@ const showtimeController = {
       const currentDate = new Date();
       currentDate.setHours(0, 0, 0, 0); // Set time to midnight (00:00:00)
       currentDate.setHours(currentDate.getHours() + 7); // Add GMT+7 offset
-  
+
       const schedules = await Schedule.find({ showtimeId: showtime._id, date: { $gte: currentDate } });
 
       const showtimeDetails = {
@@ -262,7 +261,45 @@ const showtimeController = {
     } catch (err) {
       res.status(500).json({ error: err });
     }
+  },
+
+  search: async (req, res) => {
+    try {
+      const searchTerm = req.query.q;
+      const searchResult = await Showtime.aggregate([
+        {
+          $lookup: {
+            from: 'movies',
+            localField: 'movieId',
+            foreignField: '_id',
+            as: 'movie'
+          }
+        },
+        {
+          $match: {
+            'movie.title': { $regex: searchTerm, $options: 'i' }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            showtimeId: '$_id',
+            movieTitle: { $arrayElemAt: ['$movie.title', 0] },
+            movieImage: { $arrayElemAt: ['$movie.image', 0] }
+          }
+        },
+        {
+          $limit: 5
+        }
+      ]);
+  
+      res.status(200).json(searchResult);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   }
+
 }
 
 module.exports = showtimeController;

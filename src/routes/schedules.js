@@ -4,6 +4,7 @@ const scheduleController = require('../controllers/scheduleController')
 const router = new express.Router();
 
 router.post('/', scheduleController.addSchedule);
+router.get('/search/', scheduleController.findTheatre);
 router.get('/:id', scheduleController.getByShowtimeId);
 router.get('/', scheduleController.getByShowtimeIdAndDate);
 router.patch('/:id', scheduleController.updateById);

@@ -14,7 +14,7 @@ const scheduleRouter = require('./routes/schedules');
 const showtimeRouter = require('./routes/showtimes');
 const reservationRouter = require('./routes/reservations');
 // const ticketRouter = require('./routes/tickets');
-// const otherRouter = require('./routes/other');
+const otherRouter = require('./routes/others');
 
 
 const app = express();
@@ -31,7 +31,7 @@ app.use("/v1/schedules", scheduleRouter);
 app.use("/v1/showtimes", showtimeRouter);
 app.use("/v1/reservations", reservationRouter);
 // app.use("/v1/tickets", ticketRouter);
-// app.use("/v1/", otherRouter);
+app.use("/v1/", otherRouter);
 
 // app.get("/", (req, res) => {
 //     res.sendFile(__dirname + "/index.html");

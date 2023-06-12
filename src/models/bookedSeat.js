@@ -8,11 +8,11 @@ const bookedSeatSchema = new Schema({
     ref: 'Screen',
     required: true,
   },
-  coordinate: {
+  coordinate: { // [2,3]
     type: [Number],
     required: true,
   },
-  seatType: {
+  seatType: { // 
     type: Number,
     enum: [1, 2],
     required: true

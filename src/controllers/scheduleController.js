@@ -102,7 +102,7 @@ const scheduleController = {
                 return res.status(404).json({ error: 'Schedule not found' });
             }
 
-            res.status(200).json({status: "Updated schedule!", schedule});
+            res.status(200).json({ status: "Updated schedule!", schedule });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error updating schedule' });
@@ -125,9 +125,33 @@ const scheduleController = {
             console.error(error);
             res.status(500).json({ error: 'Error deleting schedule' });
         }
+    },
+
+    findTheatre: async (req, res) => {
+        try {
+            const { showtimeId, theatre, date, timeSlot } = req.query;
+
+            if (showtimeId && !theatre && !date && !timeSlot) {
+                const theatres = await Schedule.distinct('theatre', { showtimeId });
+                res.status(200).json(theatres);
+            } else if (showtimeId && theatre && !date && !timeSlot) {
+                const dates = await Schedule.distinct('date', { showtimeId, theatre });
+                res.status(200).json(dates);
+            } else if (showtimeId && theatre && date && !timeSlot) {
+                const times = await Schedule.distinct('time', { showtimeId, theatre, date });
+                res.status(200).json(times);
+            } else {
+                throw new Error('Invalid parameters');
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error retrieving theatre list' });
+        }
+    },
+
+    addScheduleFile: async (req, res) => {
+
     }
-
-
 }
 
 module.exports = scheduleController;
