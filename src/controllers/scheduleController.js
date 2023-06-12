@@ -1,21 +1,21 @@
 const Schedule = require('../models/schedule');
-const Showtime = require('../models/showtime');
 const theatres = require('../utils/theatres')
+const fs = require('fs');
 
 const scheduleController = {
     // done and checked
     addSchedule: async (req, res) => {
         try {
-            const { showtimeId, date, theatre, time } = req.body;
+            const { scheduleId, date, theatre, time } = req.body;
             const errors = [];
 
-            if (!showtimeId || !date || !theatre || !time) {
+            if (!scheduleId || !date || !theatre || !time) {
                 errors.push('Invalid data');
             }
 
-            const showtimeIdExists = await Showtime.exists({ _id: showtimeId });
-            if (!showtimeIdExists) {
-                errors.push('Invalid showtimeId');
+            const scheduleIdExists = await schedule.exists({ _id: scheduleId });
+            if (!scheduleIdExists) {
+                errors.push('Invalid scheduleId');
             }
 
             // Check if the theater exists
@@ -33,7 +33,7 @@ const scheduleController = {
             scheduleDate.setHours(scheduleDate.getHours() + 7); // Add GMT+7 offset
 
             const schedule = await Schedule.create({
-                showtimeId,
+                scheduleId,
                 date: scheduleDate,
                 theatre,
                 time,
@@ -47,16 +47,16 @@ const scheduleController = {
     },
 
     // done and checked
-    getByShowtimeIdAndDate: async (req, res) => {
+    getByscheduleIdAndDate: async (req, res) => {
         try {
-            const { showtimeId, date } = req.query; // Retrieve from req.query instead of req.body
+            const { scheduleId, date } = req.query; // Retrieve from req.query instead of req.body
 
             const [year, month, day] = date.split('/').map(Number);
             const scheduleDate = new Date(year, month - 1, day);
             scheduleDate.setHours(scheduleDate.getHours() + 7); // Add GMT+7 offset
 
             const schedules = await Schedule.find({
-                showtimeId,
+                scheduleId,
                 date: { $eq: scheduleDate },
             });
 
@@ -68,10 +68,10 @@ const scheduleController = {
     },
 
     // done and checked
-    getByShowtimeId: async (req, res) => {
+    getByscheduleId: async (req, res) => {
         try {
-            const showtimeId = req.params.id;
-            const schedules = await Schedule.find({ showtimeId });
+            const scheduleId = req.params.id;
+            const schedules = await Schedule.find({ scheduleId });
             res.status(200).json(schedules);
         } catch (error) {
             console.error(error);
@@ -84,7 +84,7 @@ const scheduleController = {
         const scheduleId = req.params.id;
         const updates = Object.keys(req.body);
         const allowedUpdates = [
-            'showtimeId',
+            'scheduleId',
             'date',
             'theatre',
             'time'
@@ -150,7 +150,48 @@ const scheduleController = {
     },
 
     addScheduleFile: async (req, res) => {
+        try {
+            const file = req.file;
+            if (!file) {
+                return res.status(400).json({ error: 'No file uploaded' });
+            }
 
+            // Read the uploaded file
+            const fileData = fs.readFileSync(file.path, 'utf-8');
+            let schedules = JSON.parse(fileData);
+
+            fs.unlinkSync(file.path);
+
+            // Check if any of the schedules already exist in the database
+            const existingSchedules = await Schedule.find({
+                $or: schedules.map((schedule) => ({
+                    showtimeId: schedule.showtimeId,
+                    date: schedule.date,
+                    theatre: schedule.theatre,
+                })),
+            });
+
+            if (existingSchedules.length > 0) {
+                const existingSchedulesMsg = existingSchedules
+                    .map(
+                        (schedule) =>
+                            `Showtime ID ${schedule.showtimeId} already has a schedule on ${schedule.date} at ${schedule.theatre}`
+                    )
+                    .join(', ');
+                return res
+                    .status(400)
+                    .json({ error: `The following schedules already exist: ${existingSchedulesMsg}` });
+            }
+
+            // Add schedules to the database
+            const createdSchedules = await Schedule.insertMany(schedules);
+
+            // Send response
+            res.status(201).json({ message: 'Schedules added successfully', createdSchedules });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error adding schedules' });
+        }
     }
 }
 
