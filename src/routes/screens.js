@@ -1,15 +1,15 @@
 const express = require('express');
 
-const ScreenController = require('../controllers/screenController');
+const screenController = require('../controllers/screenController');
 // const auth = require('../middleware/auth');
 
 const router = new express.Router();
 
-router.post('/', ScreenController.createScreen);
-router.post('/booked-seat/:id', ScreenController.setBookedSeat);
-router.delete('/booked-seat/:bookedSeatId', ScreenController.deleteBookedSeat);
-router.get('/:id', ScreenController.getScreen);
-router.get('/', ScreenController.getScreenBy);
-
+router.post('/', screenController.createScreen);
+router.post('/booked-seat/:id', screenController.setBookedSeat);
+router.delete('/booked-seat/:bookedSeatId', screenController.deleteBookedSeat);
+router.get('/:id', screenController.getScreen);
+router.get('/', screenController.getScreenBy);
+router.delete('/:screenId', screenController.clearAllBookedSeatOfScreen);
 
 module.exports = router;

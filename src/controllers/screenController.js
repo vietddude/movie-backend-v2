@@ -112,7 +112,29 @@ const ScreenController = {
             console.error(error);
             res.status(500).json({ error: 'Error when deleting booked seats' });
         }
+    },
+
+    clearAllBookedSeatOfScreen: async (req, res) => {
+        try {
+            const screenId = req.params.screenId;
+        
+            // Find all booked seats for the given screenId
+            const bookedSeats = await BookedSeat.find({ screenId });
+    
+            if (bookedSeats.length === 0) {
+                return res.status(404).json({ error: 'No booked seats found for the screen' });
+            }
+    
+            // Delete all the found booked seats
+            const deleteResult = await BookedSeat.deleteMany({ screenId });
+        
+            res.status(200).json({ message: 'Booked seats cleared successfully', deletedCount: deleteResult.deletedCount });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error clearing booked seats' });
+        }
     }
+    
 }
 
 module.exports = ScreenController;
