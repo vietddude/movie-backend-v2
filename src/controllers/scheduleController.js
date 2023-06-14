@@ -129,15 +129,21 @@ const scheduleController = {
     findTheatre: async (req, res) => {
         try {
             const { showtimeId, theatre, date, timeSlot } = req.query;
-
             if (showtimeId && !theatre && !date && !timeSlot) {
                 const theatres = await Schedule.distinct('theatre', { showtimeId });
                 res.status(200).json(theatres);
             } else if (showtimeId && theatre && !date && !timeSlot) {
-                const dates = await Schedule.distinct('date', { showtimeId, theatre });
-                res.status(200).json(dates);
+                const currentDate = new Date();
+                const dates = await Schedule.distinct('date', { showtimeId, theatre, date: { $gte: currentDate } });
+                const formattedDates = dates.map(date => {
+                    const dateString = new Date(date).toISOString().split("T")[0];
+                    console.log(dateString);
+                    return dateString;
+                });
+                res.status(200).json(formattedDates);
             } else if (showtimeId && theatre && date && !timeSlot) {
-                const times = await Schedule.distinct('time', { showtimeId, theatre, date });
+                const parsedDate = new Date(date); // Convert date parameter to Date object
+                const times = await Schedule.distinct('time', { showtimeId, theatre, date: parsedDate });
                 res.status(200).json(times);
             } else {
                 throw new Error('Invalid parameters');
@@ -183,7 +189,19 @@ const scheduleController = {
             }
 
             // Add schedules to the database
-            const createdSchedules = await Schedule.insertMany(schedules);
+            const modifiedSchedules = schedules.map((schedule) => {
+                const [year, month, day] = schedule.date.split('/').map(Number);
+                const scheduleDate = new Date(year, month - 1, day);
+                scheduleDate.setHours(scheduleDate.getHours() + 7); // Add GMT+7 offset
+
+                return {
+                    ...schedule,
+                    date: scheduleDate,
+                };
+            });
+
+            // Add schedules to the database
+            const createdSchedules = await Schedule.insertMany(modifiedSchedules);
 
             // Send response
             res.status(201).json({ message: 'Schedules added successfully', createdSchedules });
@@ -191,7 +209,65 @@ const scheduleController = {
             console.error(error);
             res.status(500).json({ error: 'Error adding schedules' });
         }
+    },
+
+    getAllSchedules: async (req, res) => {
+        try {
+            const schedules = await Schedule.find();
+            res.status(200).json(schedules);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error retrieving schedules' });
+        }
+    },
+
+    getSchedulesByShowtime: async (req, res) => {
+        try {
+            const { showtimeId } = req.params;
+            const schedules = await Schedule.find({ showtimeId });
+            res.status(200).json(schedules);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error retrieving schedules' });
+        }
+    },
+
+    getSchedulesByDateRange: async (req, res) => {
+        try {
+            const { start, end } = req.query;
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+
+            const schedules = await Schedule.find({
+                'showtime.dateRange.start': { $gte: startDate },
+                'showtime.dateRange.end': { $lte: endDate }
+            });
+
+            res.status(200).json(schedules);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error retrieving schedules' });
+        }
+    },
+
+    getScheduleByTheatre: async (req, res) => {
+        try {
+            const { theatre, start, end } = req.query;
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+
+            const schedules = await Schedule.find({
+                theatre,
+                'showtime.dateRange.start': { $gte: startDate },
+                'showtime.dateRange.end': { $lte: endDate }
+            });
+            res.status(200).json(schedules);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error retrieving schedules' });
+        }
     }
+
 }
 
 module.exports = scheduleController;

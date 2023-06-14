@@ -51,7 +51,8 @@ const reservationController = {
   bookReservation: async (req, res) => {
     try {
       const { reservationId } = req.params;
-      const reservation = await Reservation.findById(reservationId);
+      const reservation = await Reservation.findById({ _id: reservationId });
+      console.log(reservation.totalPrice);
       if (!reservation) {
         return res.status(404).json({ error: 'Reservation not found' });
       }
@@ -134,17 +135,17 @@ const reservationController = {
       console.error(error);
       res.status(500).json({ error: error.message });
     }
-  }
+  },
 
 
-  //     getAllReservations: async (req, res) => {
-  //         try {
-  //             const reservations = await Reservation.find({});
-  //             res.status(200).json(reservations);
-  //         } catch (e) {
-  //             res.status(400).send(e);
-  //         }
-  //     },
+  getAllReservations: async (req, res) => {
+    try {
+      const reservations = await Reservation.find({});
+      res.status(200).json(reservations);
+    } catch (e) {
+      res.status(400).send(e);
+    }
+  },
 
   //     // Get reservation by id
   //     getReservationById: async (req, res) => {
@@ -194,16 +195,17 @@ const reservationController = {
   //         }
   //     },
 
-  //   // Delete reservation by id
-  //     deleteReservationById: async (req, res) => {
-  //         const _id = req.params.id;
-  //         try {
-  //             const reservation = await Reservation.findByIdAndDelete(_id);
-  //         return !reservation ? res.status(404).json({error: 'Reservation not found'}) : res.status(200).json(reservation);
-  //         } catch (e) {
-  //             return res.status(400).json({error: e.message});
-  //         }
-  //     },
+  // Delete all reservations
+  deleteAllReservations: async (req, res) => {
+    try {
+      await Reservation.deleteMany();
+      res.status(200).json({ message: 'All reservations deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Error deleting reservations' });
+    }
+  }
+
 
 }
 

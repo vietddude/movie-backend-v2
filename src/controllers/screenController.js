@@ -33,14 +33,24 @@ const ScreenController = {
         }
     },
 
-    // done but not checked
     getScreen: async (req, res) => {
         try {
             const screenId = req.params.id;
-            const screen = await Screen.findById(screenId);
+            let screen = await Screen.findById(screenId);
 
             if (!screen) {
-                return res.status(404).json({ error: 'Screen not found' });
+                const schedule = await Schedule.findById(screen.scheduleId);
+                if (!schedule || !schedule.time.includes(screen.time)) {
+                    return res.status(400).json({ error: 'Invalid schedule time' });
+                }
+
+                screen = new Screen({
+                    scheduleId: screen.scheduleId,
+                    time: screen.time,
+                    seatArray: Array.from({ length: 5 }, () => Array(8).fill(0)).concat([Array(4).fill(0)]),
+                });
+
+                await screen.save();
             }
 
             res.status(200).json(screen);
@@ -107,7 +117,7 @@ const ScreenController = {
         const bookedSeatId = req.params.bookedSeatId;
         try {
             await BookedSeat.findOneAndDelete(bookedSeatId);
-            res.status(200).json({ message: "Booked seat deleted successfully"})
+            res.status(200).json({ message: "Booked seat deleted successfully" })
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error when deleting booked seats' });
@@ -117,24 +127,42 @@ const ScreenController = {
     clearAllBookedSeatOfScreen: async (req, res) => {
         try {
             const screenId = req.params.screenId;
-        
+
             // Find all booked seats for the given screenId
             const bookedSeats = await BookedSeat.find({ screenId });
-    
+            const screen = await Screen.findById(screenId);
             if (bookedSeats.length === 0) {
                 return res.status(404).json({ error: 'No booked seats found for the screen' });
             }
-    
+
+            // Clear all booked seats by setting the seatArray to 0
+            screen.seatArray = screen.seatArray.map(row => row.map(seat => 0));
+            await screen.save();
+
             // Delete all the found booked seats
             const deleteResult = await BookedSeat.deleteMany({ screenId });
-        
+
             res.status(200).json({ message: 'Booked seats cleared successfully', deletedCount: deleteResult.deletedCount });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error clearing booked seats' });
         }
+    },
+
+    resetSeatArray: async (req, res) => {
+        try {
+            const screenId = req.params.screenId;
+            const screen = await Screen.findById(screenId);
+            // Clear all booked seats by setting the seatArray to 0
+            screen.seatArray = screen.seatArray.map(row => row.map(seat => 0));
+            await screen.save();
+
+            res.status(200).json({ message: 'Reset seat array successfully' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Error clearing booked seats' });
+        }
     }
-    
 }
 
 module.exports = ScreenController;

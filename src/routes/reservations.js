@@ -8,11 +8,11 @@ router.post('/', auth.user, reservationController.createReservation);
 router.post('/:reservationId/book', auth.user, reservationController.bookReservation);
 router.get('/ticket/:ticketId', auth.user, ticketController.getTicket);
 router.get('/:reservationId/tickets', reservationController.getAllTicketsByReservationId);
-// router.get('/', auth.simple, reservationController.getAllReservations);
+router.get('/', auth.manager, reservationController.getAllReservations);
 // router.get('/:id', reservationController.getReservationById);
 // router.get('/checkin/:id', reservationController.getReservationCheckinById);
 // router.patch('/:id', auth.enhance, reservationController.updateReservationById);
-// router.delete('/:id', auth.enhance, reservationController.deleteReservationById);
+router.delete('/' , reservationController.deleteAllReservations);
 
 
 module.exports = router;

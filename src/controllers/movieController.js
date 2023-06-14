@@ -37,14 +37,23 @@ const movieController = {
     },
 
     getAllMovies: async (req, res) => {
-        try {
-            const movies = await Movie.find({});
-            res.status(200).json(movies);
-        } catch (e) {
-            res.status(400).json({error: e.message});
+      try {
+        const movies = await Movie.find({});
+    
+        // Find showtime ID for each movie
+        for (const movie of movies) {
+          const showtime = await Showtime.findOne({ movieId: movie._id });
+    
+          // Set showtime ID to null if not found
+          movie.showtimeId = showtime ? showtime._id : null;
         }
+    
+        res.status(200).json(movies);
+      } catch (error) {
+        res.status(400).json({ error: error.message });
+      }
     },
-
+    
     getMovieById: async (req, res) => {
         const _id = req.params.id;
 

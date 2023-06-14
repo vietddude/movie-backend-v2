@@ -16,5 +16,4 @@ router.patch('/:id', auth.manager, showtimeController.updateShowtimeById);
 router.delete('/:id', auth.manager, showtimeController.deleteShowtimeById);
 router.post('/upload', auth.manager, uploadMiddleware, showtimeController.uploadShowtimes);
 router.delete('/', auth.manager, showtimeController.deleteShowtimes);
-
 module.exports = router;
