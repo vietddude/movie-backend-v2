@@ -106,7 +106,7 @@ const reservationController = {
         const seat = await BookedSeat.findById(seatId);
         const row = String.fromCharCode(65 + seat.coordinate[0]);
         const position = row + seat.coordinate[1];
-        const price = seat.price;
+        const price = seat.seatType == 1 ? 50000 : 100000;
         
         const screen = await Screen.findById(seat.screenId);
         const schedule = await Schedule.findById(screen.scheduleId);
