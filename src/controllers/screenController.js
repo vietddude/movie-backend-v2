@@ -35,26 +35,36 @@ const ScreenController = {
         }
     },
     
-    // done but not checked
     getScreenByScheduleIdAndTime: async (req, res) => {
         try {
             const { scheduleId, time } = req.query;
-            const screen = await Screen.find(scheduleId, time);
-            if (!screen) {
-                return res.status(404).json({ error: 'Screen not found' });
+            
+            const scheduleExists = await Schedule.findById(scheduleId);
+            if (!scheduleExists) {
+                return res.status(404).json({ error: 'Schedule not found' });
             }
-
+            
+            let screen = await Screen.findOne({ scheduleId, time });
+            if (!screen) {
+                screen = new Screen({
+                    scheduleId,
+                    time,
+                    seatArray: Array.from({ length: 5 }, () => Array(8).fill(0)).concat([Array(4).fill(0)]),
+                });
+    
+                await screen.save();
+            }
+    
             res.status(200).json(screen);
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error retrieving screen' });
         }
     },
-
-    // done but not checked
+    
     setBookedSeat: async (req, res) => {
         try {
-            const screenId = req.params.id;
+            const screenId = req.params.screenId;
             const coordinates = req.body;
 
             const screen = await Screen.findById(screenId);

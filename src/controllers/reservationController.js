@@ -52,12 +52,11 @@ const reservationController = {
     try {
       const { reservationId } = req.params;
       const reservation = await Reservation.findById({ _id: reservationId });
-      console.log(reservation.totalPrice);
+
       if (!reservation) {
         return res.status(404).json({ error: 'Reservation not found' });
       }
 
-      // Calculate the expiration time for the QR code (e.g., 10 minutes from now)
       const now = new Date();
       if (now - reservation.expirationTime >= 10 * 60 * 1000) {
         for (const seat of reservation.seats) {
@@ -72,17 +71,18 @@ const reservationController = {
 
       const tickets = [];
       for (const seat of reservation.seats) {
-        const price = seat.seatType == 1 ? 50000 : 100000;
+        const seatObj = await BookedSeat.findById(seat);
+        const price = seatObj.seatType == 1 ? 50000 : 100000;
         const ticket = new Ticket({
           reservationId: reservation._id,
-          bookedSeatId: seat._id,
+          bookedSeatId: seat,
           room: 1,
           price: price
         });
 
-        const row = String.fromCharCode(65 + seat.coordinate[0]);
+        const row = String.fromCharCode(65 + seatObj.coordinate[0]);
         await ticket.save();
-        tickets.push({ ...ticket._doc, position: row + seat.coordinate[1] });
+        tickets.push({ ...ticket._doc, position: row + seatObj.coordinate[1] });
       }
       res.status(200).json({ message: 'Reservation booked successfully', tickets });
     } catch (error) {
