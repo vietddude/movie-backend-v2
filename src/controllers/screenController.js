@@ -3,63 +3,38 @@ const Schedule = require('../models/schedule');
 const BookedSeat = require('../models/bookedSeat');
 
 const ScreenController = {
-    // done and checked
-    createScreen: async (req, res) => {
-        try {
-            const { scheduleId, time } = req.body;
-
-            const screenExists = await Screen.exists({ scheduleId, time });
-            if (screenExists) {
-                return res.status(400).json({ error: 'Screen already exists' });
-            }
-
-            const schedule = await Schedule.findById(scheduleId);
-            if (!schedule || !schedule.time.includes(time)) {
-                return res.status(400).json({ error: 'Invalid schedule time' });
-            }
-
-            const screen = new Screen({
-                scheduleId,
-                time,
-                seatArray: Array.from({ length: 5 }, () => Array(8).fill(0)).concat([Array(4).fill(0)]),
-            });
-
-            await screen.save();
-
-            res.status(201).json({ message: 'Screen list created successfully', schedule, screen });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Error creating screen' });
-        }
-    },
-
     getScreen: async (req, res) => {
         try {
-            const screenId = req.params.id;
-            let screen = await Screen.findById(screenId);
-
+            const { showtimeId, theatre, date, timeSlot } = req.body;
+            const schedule = await Schedule.findOne({
+                showtimeId,
+                date,
+                theatre,
+                time: { $in: [timeSlot] }
+            });
+            
+            if (!schedule) {
+                return res.status(400).json({ error: "Schedule does not exist" });
+            }
+    
+            let screen = await Screen.findOne({ scheduleId: schedule._id, time: timeSlot });
             if (!screen) {
-                const schedule = await Schedule.findById(screen.scheduleId);
-                if (!schedule || !schedule.time.includes(screen.time)) {
-                    return res.status(400).json({ error: 'Invalid schedule time' });
-                }
-
                 screen = new Screen({
-                    scheduleId: screen.scheduleId,
-                    time: screen.time,
+                    scheduleId: schedule._id,
+                    time: timeSlot,
                     seatArray: Array.from({ length: 5 }, () => Array(8).fill(0)).concat([Array(4).fill(0)]),
                 });
-
+    
                 await screen.save();
             }
-
+    
             res.status(200).json(screen);
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Error retrieving screen' });
         }
     },
-
+    
     // done but not checked
     getScreenBy: async (req, res) => {
         try {

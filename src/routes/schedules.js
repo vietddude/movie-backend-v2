@@ -8,7 +8,7 @@ const router = new express.Router();
 router.post('/', scheduleController.addSchedule);
 router.get('/search/', scheduleController.findTheatre);
 router.get('/all', scheduleController.getAllSchedules);
-router.get('/showtime/:showtimeId', auth.manager, scheduleController.getSchedulesByShowtime);
+router.get('/showtime/:showtimeId', scheduleController.getSchedulesByShowtime);
 router.get('/theatre/', auth.manager, scheduleController.getScheduleByTheatre);
 router.get('/:id', scheduleController.getByscheduleId);
 router.get('/', scheduleController.getByShowtimeIdAndDate);
