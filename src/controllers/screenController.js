@@ -5,7 +5,7 @@ const BookedSeat = require('../models/bookedSeat');
 const ScreenController = {
     getScreen: async (req, res) => {
         try {
-            const { showtimeId, theatre, date, timeSlot } = req.body;
+            const { showtimeId, theatre, date, timeSlot } = req.query;
             const schedule = await Schedule.findOne({
                 showtimeId,
                 date,
@@ -36,7 +36,7 @@ const ScreenController = {
     },
     
     // done but not checked
-    getScreenBy: async (req, res) => {
+    getScreenByScheduleIdAndTime: async (req, res) => {
         try {
             const { scheduleId, time } = req.query;
             const screen = await Screen.find(scheduleId, time);
