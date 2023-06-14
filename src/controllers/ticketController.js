@@ -45,7 +45,7 @@ const ticketController = {
     
         const row = String.fromCharCode(65 + bookedSeat.coordinate[0]);
     
-        res.status(200).json({ ...ticket._doc, seatRow: row });
+        res.status(200).json({ ...ticket._doc, position: row + bookedSeat.coordinate[1] });
       } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Ticket does not exist" });

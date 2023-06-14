@@ -75,11 +75,13 @@ const reservationController = {
         const ticket = new Ticket({
           reservationId: reservation._id,
           bookedSeatId: seat._id,
-          quantity: 1,
+          room: 1,
           price: price
         });
+
+        const row = String.fromCharCode(65 + seat.coordinate[0]);
         await ticket.save();
-        tickets.push(ticket);
+        tickets.push({ ...ticket._doc, position: row + seat.coordinate[1] });
       }
       res.status(200).json({ message: 'Reservation booked successfully', tickets });
     } catch (error) {
@@ -87,7 +89,6 @@ const reservationController = {
       res.status(500).json({ error: error.message });
     }
   }
-
 
   //     getAllReservations: async (req, res) => {
   //         try {
