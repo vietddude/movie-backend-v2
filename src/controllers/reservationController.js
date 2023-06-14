@@ -1,6 +1,10 @@
 const Reservation = require('../models/reservation');
 const Ticket = require('../models/ticket');
 const BookedSeat = require('../models/bookedSeat');
+const Screen = require('../models/screen');
+const Schedule = require('../models/schedule');
+const Movie = require('../models/movie');
+const Showtime = require('../models/showtime');
 
 const reservationController = {
   createReservation: async (req, res) => {
@@ -93,44 +97,35 @@ const reservationController = {
 
   getAllTicketsByReservationId: async (req, res) => {
     try {
-      const reservationId = req.params;
-      const tickets = await Ticket.find({ reservationId })
-        .populate({
-          path: 'reservationId',
-          populate: [
-            { path: 'movieId', select: 'name' },
-            { path: 'screenId', select: 'date time' }
-          ]
-        })
-        .populate('bookedSeatId', 'seatType coordinate');
+      const { reservationId } = req.params;
+      const reservation = await Reservation.findById(reservationId);
+      
+      const tickets = [];
 
-      let totalPrice = 0;
-      const formattedTickets = tickets.map((ticket) => {
-        totalPrice += ticket.price;
-        const { reservationId, price, bookedSeatId } = ticket;
-        const { movieId, screenId } = ticket.reservationId;
-        const { name } = movieId;
-        const { date, time } = screenId;
-        const [row, column] = bookedSeatId.coordinate;
-        const seat = String.fromCharCode(65 + row) + column;
-
-        return {
-          reservationId,
-          movie: name,
-          date,
-          time,
-          price,
-          seat
+      for (const seatId of reservation.seats) {
+        const seat = await BookedSeat.findById(seatId);
+        const row = String.fromCharCode(65 + seat.coordinate[0]);
+        const position = row + seat.coordinate[1];
+        const price = seat.price;
+        
+        const screen = await Screen.findById(seat.screenId);
+        const schedule = await Schedule.findById(screen.scheduleId);
+        const showtime = await Showtime.findById(schedule.showtimeId);
+        const movie = await Movie.findById(showtime.movieId);
+        
+        const ticket = {
+          movieTitle: movie.title,
+          date: schedule.date,
+          time: screen.time,
+          price: price,
+          seatPosition: position,
+          theatre: schedule.theatre
         };
-      });
-
-      const result = {
-        reservationId,
-        tickets: formattedTickets,
-        totalPrice
-      };
-
-      res.status(200).json(result);
+        
+        tickets.push(ticket);
+      }
+      
+      res.status(200).json({ reservation, tickets });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: error.message });
