@@ -124,7 +124,21 @@ const movieController = {
         console.error(error);
         res.status(500).json({ error: 'Error adding movies' });
       }
+    },
+    
+    searchMovie: async (req, res) => {
+      const { title } = req.query;
+    
+      try {
+        const movies = await Movie.find({ title: { $regex: title, $options: 'i' } }).select('title');
+        const movieTitles = movies.map(movie => movie.title);
+        res.status(200).json(movieTitles);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
     }
+    
 }
 
 module.exports = movieController;

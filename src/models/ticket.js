@@ -21,8 +21,12 @@ const ticketSchema = new Schema({
   price: {
     type: Number,
     required: true,
+  },
+},
+  {
+    timestamps: true,
   }
-});
+)
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 

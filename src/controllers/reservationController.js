@@ -88,7 +88,54 @@ const reservationController = {
       console.error(error);
       res.status(500).json({ error: error.message });
     }
+  },
+
+  getAllTicketsByReservationId: async (req, res) => {
+    try {
+      const reservationId = req.params;
+      const tickets = await Ticket.find({ reservationId })
+        .populate({
+          path: 'reservationId',
+          populate: [
+            { path: 'movieId', select: 'name' },
+            { path: 'screenId', select: 'date time' }
+          ]
+        })
+        .populate('bookedSeatId', 'seatType coordinate');
+
+      let totalPrice = 0;
+      const formattedTickets = tickets.map((ticket) => {
+        totalPrice += ticket.price;
+        const { reservationId, price, bookedSeatId } = ticket;
+        const { movieId, screenId } = ticket.reservationId;
+        const { name } = movieId;
+        const { date, time } = screenId;
+        const [row, column] = bookedSeatId.coordinate;
+        const seat = String.fromCharCode(65 + row) + column;
+
+        return {
+          reservationId,
+          movie: name,
+          date,
+          time,
+          price,
+          seat
+        };
+      });
+
+      const result = {
+        reservationId,
+        tickets: formattedTickets,
+        totalPrice
+      };
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
   }
+
 
   //     getAllReservations: async (req, res) => {
   //         try {
