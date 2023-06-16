@@ -41,17 +41,18 @@ const movieController = {
       try {
         const movies = await Movie.find({});
     
-        // Find showtime ID for each movie
-        for (const movie of movies) {
-          const showtime = await Showtime.findOne({ movieId: movie._id });
+        const moviesWithShowtimeIds = await Promise.all(
+          movies.map(async (movie) => {
+            const showtime = await Showtime.findOne({ movieId: movie._id });
+            const showtimeId = showtime ? showtime._id : null;
+            
+            return { ...movie.toObject(), showtimeId };
+          })
+        );
     
-          // Set showtime ID to null if not found
-          movie.showtimeId = showtime ? showtime._id : null;
-        }
-    
-        res.status(200).json(movies);
+        res.status(200).json(moviesWithShowtimeIds);
       } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(500).json({ error: 'Error retrieving movies' });
       }
     },
     
