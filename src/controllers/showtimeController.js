@@ -27,17 +27,21 @@ const showtimeController = {
   getAllShowtimes: async (req, res) => {
     try {
       const showtimes = await Showtime.find({}).populate('movieId');
-
       const showtimeDetails = [];
-
+      const notFoundList = [];
       for (const showtime of showtimes) {
-        const movie = await Movie.findById(showtime.movieId);
+        const movie = showtime.movieId; // Access the populated movie directly from showtime
+  
         if (!movie) {
-          return res.status(404).json({ error: 'Movie not found' });
+          notFoundList.push(showtime.url);
         }
 
+        if(!notFoundList) {
+          res.status(404).json({ error: "Movies not found!", movies: notFoundList })
+        }
+  
         const schedules = await Schedule.find({ showtimeId: showtime._id });
-
+  
         const showtimeDetail = {
           id: showtime._id,
           movieId: movie._id,
@@ -46,15 +50,15 @@ const showtimeController = {
           isActive: showtime.isActive,
           schedules,
         };
-
+  
         showtimeDetails.push(showtimeDetail);
       }
-
+  
       res.status(200).json(showtimeDetails);
     } catch (e) {
       res.status(400).json({ error: e.message });
     }
-  },
+  },  
 
   // done and checked
   getNowShowing: async (req, res) => {

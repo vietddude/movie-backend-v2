@@ -26,7 +26,7 @@ const userSchema = Schema(
       lowercase: true,
       validate(value) {
         if (!validator.isEmail(value)) {
-          throw new Error('email is invalid');
+          throw new Error('Email is invalid');
         }
       },
     },
