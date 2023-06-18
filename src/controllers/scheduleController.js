@@ -1,25 +1,26 @@
 const Schedule = require('../models/schedule');
-const theatres = require('../utils/theatres')
+const Theatres = require('../utils/theatres');
+const Showtime = require('../models/showtime');
 const fs = require('fs');
 
 const scheduleController = {
     // done and checked
     addSchedule: async (req, res) => {
         try {
-            const { scheduleId, date, theatre, time } = req.body;
+            const { showtimeId, date, theatre, time } = req.body;
             const errors = [];
 
-            if (!scheduleId || !date || !theatre || !time) {
+            if (!showtimeId || !date || !theatre || !time) {
                 errors.push('Invalid data');
             }
 
-            const scheduleIdExists = await schedule.exists({ _id: scheduleId });
-            if (!scheduleIdExists) {
-                errors.push('Invalid scheduleId');
+            const showtimeExists = await Showtime.exists({ _id: showtimeId });
+            if (!showtimeExists) {
+                errors.push('Invalid showtimeId');
             }
 
             // Check if the theater exists
-            const theatreExists = theatres.includes(theatre);
+            const theatreExists = Theatres.includes(theatre);
             if (!theatreExists) {
                 errors.push('Invalid theater');
             }
@@ -32,11 +33,31 @@ const scheduleController = {
             const scheduleDate = new Date(year, month - 1, day);
             scheduleDate.setHours(scheduleDate.getHours() + 7); // Add GMT+7 offset
 
-            const schedule = await Schedule.create({
-                scheduleId,
+            let scheduleTimes = [];
+            if (Array.isArray(time)) {
+                // If time is an array, use the array directly
+                scheduleTimes = time;
+            } else {
+                // If time is a single value, convert it to an array
+                scheduleTimes.push(time);
+            }
+
+            const existingSchedule = await Schedule.findOne({
+                showtimeId,
                 date: scheduleDate,
                 theatre,
-                time,
+                time: { $in: scheduleTimes },
+            });
+
+            if (existingSchedule) {
+                return res.status(409).json({ error: 'Schedule already exists' });
+            }
+
+            const schedule = await Schedule.create({
+                showtimeId,
+                date: scheduleDate,
+                theatre,
+                time: scheduleTimes,
             });
 
             res.status(201).json(schedule);
@@ -45,6 +66,7 @@ const scheduleController = {
             res.status(500).json({ error: 'Error creating schedule' });
         }
     },
+
 
     // done and checked
     getByShowtimeIdAndDate: async (req, res) => {
