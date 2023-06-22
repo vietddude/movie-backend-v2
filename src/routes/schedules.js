@@ -5,7 +5,7 @@ const auth = require('../middleware/auth')
 
 const router = new express.Router();
 
-router.post('/', scheduleController.addSchedule);
+router.post('/', auth.manager, scheduleController.addSchedule);
 router.get('/search/', scheduleController.findTheatre);
 router.get('/all', scheduleController.getAllSchedules);
 router.get('/showtime/:showtimeId', scheduleController.getSchedulesByShowtime);

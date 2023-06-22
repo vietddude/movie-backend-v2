@@ -9,6 +9,7 @@ router.post('/:reservationId/book', auth.user, reservationController.bookReserva
 router.get('/ticket/:ticketId', auth.user, ticketController.getTicket);
 router.get('/:reservationId/tickets', reservationController.getAllTicketsByReservationId);
 router.get('/', auth.manager, reservationController.getAllReservations);
+router.get('/tickets/:userId', auth.user, reservationController.getAllTicketsByUserId);
 // router.get('/:id', reservationController.getReservationById);
 // router.get('/checkin/:id', reservationController.getReservationCheckinById);
 // router.patch('/:id', auth.enhance, reservationController.updateReservationById);
